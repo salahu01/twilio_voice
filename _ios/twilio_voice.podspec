@@ -8,7 +8,7 @@ Pod::Spec.new do |s|
   s.summary          = 'Provides an interface to Twilio&#x27;s Programmable Voice SDK to allows adding voice-over-IP (VoIP) calling into your Flutter applications.'
   s.description      = <<-DESC
   Provides an interface to Twilio&#x27;s Programmable Voice SDK to allows adding voice-over-IP (VoIP) calling into your Flutter applications.
-                       DESC
+                      DESC
   s.homepage         = 'https://github.com/cybex-dev/twilio_voice/'
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Charles Dyason' => 'charles@earthbase.io' }
