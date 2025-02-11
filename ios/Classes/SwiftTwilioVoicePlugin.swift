@@ -19,7 +19,7 @@ public class SwiftTwilioVoicePlugin: NSObject, FlutterPlugin,  FlutterStreamHand
     let kCachedDeviceToken = "CachedDeviceToken"
     let kCachedBindingDate = "CachedBindingDate"
     let kClientList = "TwilioContactList"
-    private var clients: [String:String]!
+    private var clients: [String:String] = [:]
     
     var accessToken:String?
     var identity = "alice"
@@ -31,7 +31,7 @@ public class SwiftTwilioVoicePlugin: NSObject, FlutterPlugin,  FlutterStreamHand
     }
     var callArgs: Dictionary<String, AnyObject> = [String: AnyObject]()
     
-    var voipRegistry: PKPushRegistry
+    var voipRegistry: PKPushRegistry?
     var incomingPushCompletionCallback: (()->Swift.Void?)? = nil
     
     var callInvite:CallInvite?
@@ -53,13 +53,14 @@ public class SwiftTwilioVoicePlugin: NSObject, FlutterPlugin,  FlutterStreamHand
     public override init() {
         
         //isSpinning = false
-        voipRegistry = PKPushRegistry.init(queue: DispatchQueue.main)
         let configuration = CXProviderConfiguration(localizedName: SwiftTwilioVoicePlugin.appName)
         configuration.maximumCallGroups = 1
         configuration.maximumCallsPerCallGroup = 1
         let defaultIcon = UserDefaults.standard.string(forKey: defaultCallKitIcon) ?? defaultCallKitIcon
         
-        clients = UserDefaults.standard.object(forKey: kClientList)  as? [String:String] ?? [:]
+        // Initialize clients from UserDefaults with a default empty dictionary
+        self.clients = UserDefaults.standard.object(forKey: kClientList) as? [String:String] ?? [:]
+        
         callKitProvider = CXProvider(configuration: configuration)
         callKitCallController = CXCallController()
         
@@ -67,11 +68,11 @@ public class SwiftTwilioVoicePlugin: NSObject, FlutterPlugin,  FlutterStreamHand
         super.init()
         
         callKitProvider.setDelegate(self, queue: nil)
-        _ = updateCallKitIcon(icon: defaultIcon)
+        _ = updateCallKitIcon(icon: defaultCallKitIcon)
         
-        voipRegistry.delegate = self
-        voipRegistry.desiredPushTypes = Set([PKPushType.voIP])
-
+        // Remove VoIP initialization from here
+        // voipRegistry initialization will happen when token is set
+        
         let appDelegate = UIApplication.shared.delegate
         guard let controller = appDelegate?.window??.rootViewController as? FlutterViewController else {
             fatalError("rootViewController is not type FlutterViewController")
@@ -108,6 +109,10 @@ public class SwiftTwilioVoicePlugin: NSObject, FlutterPlugin,  FlutterStreamHand
         if flutterCall.method == "tokens" {
             guard let token = arguments["accessToken"] as? String else {return}
             self.accessToken = token
+            
+            // Initialize VoIP registry when token is set
+            initializeVoIPRegistry()
+            
             if let deviceToken = deviceToken, let token = accessToken {
                 self.sendPhoneCallEvents(description: "LOG|pushRegistry:attempting to register with twilio", isError: false)
                 TwilioVoiceSDK.register(accessToken: token, deviceToken: deviceToken) { (error) in
@@ -429,7 +434,6 @@ public class SwiftTwilioVoicePlugin: NSObject, FlutterPlugin,  FlutterStreamHand
 
         let deviceToken = credentials.token
         
-        self.sendPhoneCallEvents(description: "LOG|pushRegistry:attempting to register with twilio", isError: false)
         if let token = accessToken {
             TwilioVoiceSDK.register(accessToken: token, deviceToken: deviceToken) { (error) in
                 if let error = error {
@@ -441,9 +445,9 @@ public class SwiftTwilioVoicePlugin: NSObject, FlutterPlugin,  FlutterStreamHand
                 }
             }
         }
+        
         self.deviceToken = deviceToken
         UserDefaults.standard.set(Date(), forKey: kCachedBindingDate)
-
     }
     
     /**
@@ -844,7 +848,7 @@ public class SwiftTwilioVoicePlugin: NSObject, FlutterPlugin,  FlutterStreamHand
         let startCallAction = CXStartCallAction(call: uuid, handle: callHandle)
         let transaction = CXTransaction(action: startCallAction)
         
-        callKitCallController.request(transaction)  { error in
+        callKitCallController.request(transaction) { error in
             if let error = error {
                 self.sendPhoneCallEvents(description: "LOG|StartCallAction transaction request failed: \(error.localizedDescription)", isError: false)
                 return
@@ -1004,6 +1008,14 @@ public class SwiftTwilioVoicePlugin: NSObject, FlutterPlugin,  FlutterStreamHand
         }
     }
     
+    // Add method to initialize VoIP registry
+    private func initializeVoIPRegistry() {
+        if voipRegistry == nil {
+            voipRegistry = PKPushRegistry(queue: DispatchQueue.main)
+            voipRegistry?.delegate = self
+            voipRegistry?.desiredPushTypes = Set([PKPushType.voIP])
+        }
+    }
 }
 
 extension UIWindow {

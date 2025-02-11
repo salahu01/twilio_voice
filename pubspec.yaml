@@ -34,8 +34,8 @@ flutter:
       android:
         package: com.twilio.twilio_voice
         pluginClass: TwilioVoicePlugin
-      # ios:
-      #   pluginClass: TwilioVoicePlugin
+      ios:
+        pluginClass: TwilioVoicePlugin
       web:
         # As a temporary measure, the web implementation of a plugin is defined in
         # `twilio_voice_web`, but this will change soon with the migration to a federated
