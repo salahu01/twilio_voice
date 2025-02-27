@@ -117,9 +117,9 @@ class NotificationService {
     List<Map<String, String>>? actions,
   }) async {
     // request background permissions
-    if(!await hasPermission()) {
+    if (!await hasPermission()) {
       bool result = await requestPermission();
-      if(!result) {
+      if (!result) {
         printDebug("Cannot show notification with permission.");
         return;
       }
@@ -782,8 +782,7 @@ class Call extends MethodChannelTwilioCall {
   /// See [twilio_js.Device.connect]
   @override
   Future<bool?> place({required String from, required String to, Map<String, dynamic>? extraOptions}) async {
-    assert(device != null,
-        "Twilio device is null, make sure you have initialized the device first by calling [ setTokens({required String accessToken, String? deviceToken}) ] ");
+    assert(device != null, "Twilio device is null, make sure you have initialized the device first by calling [ setTokens({required String accessToken, String? deviceToken}) ] ");
     assert(from.isNotEmpty, "'from' cannot be empty");
     assert(to.isNotEmpty, "'to' cannot be empty");
     final options = (extraOptions ?? {});
@@ -828,8 +827,7 @@ class Call extends MethodChannelTwilioCall {
   /// See [twilio_js.Device.connect]
   @override
   Future<bool?> connect({Map<String, dynamic>? extraOptions}) async {
-    assert(device != null,
-        "Twilio device is null, make sure you have initialized the device first by calling [ setTokens({required String accessToken, String? deviceToken}) ] ");
+    assert(device != null, "Twilio device is null, make sure you have initialized the device first by calling [ setTokens({required String accessToken, String? deviceToken}) ] ");
 
     Logger.logLocalEvent("Making new call with Connect");
     // handle parameters
@@ -972,8 +970,6 @@ class Call extends MethodChannelTwilioCall {
     Logger.logLocalEvent("Missed Call", prefix: "");
     Logger.logLocalEvent("Call Ended", prefix: "");
   }
-
-
 
   Future<void> _showMissedCallNotification(twilio_js.Call call) async {
     const action = 'missed';
